@@ -1,0 +1,718 @@
+# ============================================================
+# PROYECTO FINAL - FUNDAMENTOS DE PROGRAMACIÓN
+# SISTEMA DE INVENTARIO Y VENTAS PARA FERRETERÍA
+# ============================================================
+# Este programa permite administrar productos, inventario
+# y ventas de una ferretería.
+#
+# El programa utiliza:
+# - Variables
+# - Strings, enteros y decimales
+# - Operadores
+# - Condicionales
+# - Ciclos while y for
+# - Funciones
+# - Listas
+# - Tuplas
+# - Diccionarios
+# - Comprensión de listas
+# - Archivos
+# - Excepciones
+# ============================================================
+
+
+# Nombre del archivo donde se guardará el inventario.
+nombre_archivo = "inventario.txt"
+
+
+# Diccionario principal del inventario.
+# La llave será el nombre del producto.
+# Cada producto tendrá precio y cantidad.
+inventario = {}
+
+
+# Lista donde se guardarán las ventas realizadas
+# durante la sesión actual.
+ventas_dia = []
+
+
+# ============================================================
+# FUNCIÓN PARA CARGAR EL INVENTARIO
+# RF10
+# ============================================================
+
+def cargar_inventario():
+
+    # Intentamos abrir el archivo guardado anteriormente.
+    try:
+
+        # Se abre el archivo en modo lectura.
+        archivo_inventario = open(nombre_archivo, "r", encoding="utf-8")
+
+        # Recorremos cada línea del archivo.
+        for linea_archivo in archivo_inventario:
+
+            # Quitamos espacios y saltos de línea.
+            linea_archivo = linea_archivo.strip()
+
+            # Evitamos procesar líneas vacías.
+            if linea_archivo != "":
+
+                # Los datos están separados por el símbolo |
+                datos_producto = linea_archivo.split("|")
+
+                # Verificamos que existan exactamente tres datos.
+                if len(datos_producto) == 3:
+
+                    try:
+
+                        # Recuperamos el nombre.
+                        nombre_producto = datos_producto[0]
+
+                        # Recuperamos y convertimos el precio.
+                        precio_producto = float(datos_producto[1])
+
+                        # Recuperamos y convertimos la cantidad.
+                        cantidad_producto = int(datos_producto[2])
+
+                        # Solo cargamos datos válidos.
+                        if precio_producto > 0 and cantidad_producto >= 0:
+
+                            # Agregamos el producto al diccionario.
+                            inventario[nombre_producto] = {
+                                "precio": precio_producto,
+                                "cantidad": cantidad_producto
+                            }
+
+                    # Si alguna línea está dañada, no cerramos
+                    # todo el programa.
+                    except ValueError:
+                        pass
+
+        # Cerramos el archivo.
+        archivo_inventario.close()
+
+        # Avisamos al usuario.
+        print("\nInventario cargado correctamente.")
+
+    # Si el archivo todavía no existe, significa que
+    # probablemente es la primera ejecución.
+    except FileNotFoundError:
+
+        print("\nNo existe un inventario anterior.")
+        print("Se iniciará un inventario nuevo.")
+
+    # Capturamos cualquier otro problema relacionado
+    # con el archivo para evitar que el programa termine.
+    except Exception:
+
+        print("\nNo fue posible cargar el inventario.")
+        print("Se iniciará con un inventario vacío.")
+
+
+# ============================================================
+# FUNCIÓN PARA GUARDAR EL INVENTARIO
+# RF9
+# ============================================================
+
+def guardar_inventario():
+
+    try:
+
+        # Abrimos el archivo en modo escritura.
+        archivo_inventario = open(
+            nombre_archivo,
+            "w",
+            encoding="utf-8"
+        )
+
+        # Recorremos todos los productos.
+        for nombre_producto in inventario:
+
+            # Obtenemos el precio.
+            precio_producto = inventario[nombre_producto]["precio"]
+
+            # Obtenemos la cantidad.
+            cantidad_producto = inventario[nombre_producto]["cantidad"]
+
+            # Creamos una línea con los datos separados por |.
+            linea_producto = (
+                nombre_producto
+                + "|"
+                + str(precio_producto)
+                + "|"
+                + str(cantidad_producto)
+                + "\n"
+            )
+
+            # Guardamos la línea.
+            archivo_inventario.write(linea_producto)
+
+        # Cerramos correctamente el archivo.
+        archivo_inventario.close()
+
+        # Confirmamos que se guardó.
+        print("\nInventario guardado correctamente.")
+
+    except Exception:
+
+        # Evitamos que un problema de archivo cierre
+        # inesperadamente todo el programa.
+        print("\nOcurrió un problema al guardar el inventario.")
+
+
+# ============================================================
+# FUNCIÓN PARA AGREGAR PRODUCTOS
+# RF2
+# ============================================================
+
+def agregar_producto():
+
+    print("\n--- AGREGAR PRODUCTO ---")
+
+    # Solicitamos el nombre.
+    nombre_producto = input(
+        "Nombre del producto: "
+    ).strip()
+
+    # Evitamos nombres vacíos.
+    if nombre_producto == "":
+
+        print("El nombre no puede estar vacío.")
+        return
+
+    # Convertimos a minúsculas para evitar productos
+    # duplicados por diferencias de mayúsculas.
+    clave_producto = nombre_producto.lower()
+
+    # Revisamos si ya existe.
+    if clave_producto in inventario:
+
+        print("Ese producto ya existe en el inventario.")
+        return
+
+    # Solicitamos el precio hasta recibir uno válido.
+    while True:
+
+        try:
+
+            precio_producto = float(
+                input("Precio del producto: $")
+            )
+
+            # Regla de negocio:
+            # el precio siempre debe ser mayor que cero.
+            if precio_producto <= 0:
+
+                print("El precio debe ser mayor a 0.")
+
+            else:
+
+                break
+
+        except ValueError:
+
+            print("Ingresa un precio válido.")
+
+    # Solicitamos la cantidad inicial.
+    while True:
+
+        try:
+
+            cantidad_producto = int(
+                input("Cantidad inicial: ")
+            )
+
+            # La cantidad puede ser cero,
+            # pero nunca negativa.
+            if cantidad_producto < 0:
+
+                print("La cantidad no puede ser negativa.")
+
+            else:
+
+                break
+
+        except ValueError:
+
+            print("Ingresa una cantidad entera válida.")
+
+    # Guardamos el producto.
+    inventario[clave_producto] = {
+        "nombre": nombre_producto,
+        "precio": precio_producto,
+        "cantidad": cantidad_producto
+    }
+
+    # Mostramos la confirmación solicitada.
+    print("\nProducto agregado correctamente.")
+    print("Nombre:", nombre_producto)
+    print("Precio: $" + format(precio_producto, ",.2f"))
+    print("Cantidad:", cantidad_producto)
+
+
+# ============================================================
+# FUNCIÓN PARA CONSULTAR TODO EL INVENTARIO
+# RF3
+# ============================================================
+
+def consultar_inventario():
+
+    print("\n--- INVENTARIO COMPLETO ---")
+
+    # Revisamos si está vacío.
+    if len(inventario) == 0:
+
+        print("No hay productos registrados.")
+        return
+
+    # Encabezados para mostrar los datos ordenadamente.
+    print(
+        "{:<25} {:>12} {:>12}".format(
+            "Producto",
+            "Precio",
+            "Cantidad"
+        )
+    )
+
+    print("-" * 51)
+
+    # Recorremos el diccionario.
+    for clave_producto in inventario:
+
+        # Obtenemos los datos.
+        datos_producto = inventario[clave_producto]
+
+        # Si el producto fue creado desde el programa,
+        # tendrá guardado su nombre original.
+        nombre_producto = datos_producto.get(
+            "nombre",
+            clave_producto
+        )
+
+        # Mostramos los datos.
+        print(
+            "{:<25} ${:>10,.2f} {:>12}".format(
+                nombre_producto,
+                datos_producto["precio"],
+                datos_producto["cantidad"]
+            )
+        )
+
+
+# ============================================================
+# FUNCIÓN PARA BUSCAR PRODUCTOS
+# RF5
+# ============================================================
+
+def buscar_producto():
+
+    print("\n--- BUSCAR PRODUCTO ---")
+
+    # Solicitamos el nombre.
+    nombre_busqueda = input(
+        "Nombre del producto: "
+    ).strip().lower()
+
+    # Evitamos búsquedas vacías.
+    if nombre_busqueda == "":
+
+        print("Debes escribir el nombre de un producto.")
+        return
+
+    # Buscamos en el diccionario.
+    if nombre_busqueda in inventario:
+
+        datos_producto = inventario[nombre_busqueda]
+
+        nombre_producto = datos_producto.get(
+            "nombre",
+            nombre_busqueda
+        )
+
+        print("\nProducto encontrado:")
+        print("Nombre:", nombre_producto)
+
+        print(
+            "Precio: $"
+            + format(datos_producto["precio"], ",.2f")
+        )
+
+        print(
+            "Cantidad disponible:",
+            datos_producto["cantidad"]
+        )
+
+    else:
+
+        # No mostramos un error de Python.
+        print("Producto no encontrado.")
+
+
+# ============================================================
+# FUNCIÓN PARA VENDER PRODUCTOS
+# RF4
+# ============================================================
+
+def vender_producto():
+
+    print("\n--- REGISTRAR VENTA ---")
+
+    # Solicitamos el producto.
+    nombre_busqueda = input(
+        "Producto a vender: "
+    ).strip().lower()
+
+    # Verificamos que se haya escrito algo.
+    if nombre_busqueda == "":
+
+        print("Debes escribir un producto.")
+        return
+
+    # Verificamos que exista.
+    if nombre_busqueda not in inventario:
+
+        print("El producto no existe.")
+        return
+
+    # Recuperamos sus datos.
+    datos_producto = inventario[nombre_busqueda]
+
+    # Solicitamos la cantidad.
+    while True:
+
+        try:
+
+            cantidad_venta = int(
+                input("Cantidad a vender: ")
+            )
+
+            # La venta debe ser mayor a cero.
+            if cantidad_venta <= 0:
+
+                print(
+                    "La cantidad debe ser mayor a 0."
+                )
+
+            else:
+
+                break
+
+        except ValueError:
+
+            print(
+                "Ingresa una cantidad entera válida."
+            )
+
+    # Regla de negocio:
+    # no podemos vender más de lo disponible.
+    if cantidad_venta > datos_producto["cantidad"]:
+
+        print("\nStock insuficiente.")
+
+        print(
+            "Solo existen",
+            datos_producto["cantidad"],
+            "unidades."
+        )
+
+        return
+
+    # Recuperamos el precio.
+    precio_unitario = datos_producto["precio"]
+
+    # Calculamos el total.
+    total_venta = cantidad_venta * precio_unitario
+
+    # Descontamos las unidades vendidas.
+    inventario[nombre_busqueda]["cantidad"] -= cantidad_venta
+
+    # Recuperamos el nombre original.
+    nombre_producto = datos_producto.get(
+        "nombre",
+        nombre_busqueda
+    )
+
+    # Creamos una tupla con la venta.
+    venta_realizada = (
+        nombre_producto,
+        cantidad_venta,
+        precio_unitario,
+        total_venta
+    )
+
+    # Guardamos la venta en la lista.
+    ventas_dia.append(venta_realizada)
+
+    # Mostramos la confirmación.
+    print("\nVenta registrada correctamente.")
+    print("Producto:", nombre_producto)
+    print("Cantidad:", cantidad_venta)
+
+    print(
+        "Precio unitario: $"
+        + format(precio_unitario, ",.2f")
+    )
+
+    print(
+        "Total: $"
+        + format(total_venta, ",.2f")
+    )
+
+
+# ============================================================
+# FUNCIÓN PARA MOSTRAR STOCK BAJO
+# RF6
+# ============================================================
+
+def mostrar_stock_bajo():
+
+    print("\n--- PRODUCTOS CON STOCK BAJO ---")
+
+    # Utilizamos comprensión de listas como pide
+    # específicamente el proyecto.
+    productos_stock_bajo = [
+        clave_producto
+        for clave_producto in inventario
+        if inventario[clave_producto]["cantidad"] <= 5
+    ]
+
+    # Si la lista está vacía, avisamos.
+    if len(productos_stock_bajo) == 0:
+
+        print("No hay productos con stock bajo.")
+        return
+
+    # Recorremos únicamente los productos filtrados.
+    for clave_producto in productos_stock_bajo:
+
+        datos_producto = inventario[clave_producto]
+
+        nombre_producto = datos_producto.get(
+            "nombre",
+            clave_producto
+        )
+
+        print(
+            nombre_producto,
+            "-",
+            datos_producto["cantidad"],
+            "unidades"
+        )
+
+
+# ============================================================
+# FUNCIÓN PARA MOSTRAR LAS VENTAS DEL DÍA
+# RF7
+# ============================================================
+
+def mostrar_ventas_dia():
+
+    print("\n--- VENTAS DEL DÍA ---")
+
+    # Verificamos si se ha realizado alguna venta.
+    if len(ventas_dia) == 0:
+
+        print("Todavía no hay ventas registradas.")
+        return
+
+    # Variable para numerar las ventas.
+    numero_venta = 1
+
+    # Recorremos la lista.
+    for venta_realizada in ventas_dia:
+
+        # Recuperamos los datos de la tupla.
+        nombre_producto = venta_realizada[0]
+        cantidad_venta = venta_realizada[1]
+        precio_unitario = venta_realizada[2]
+        total_venta = venta_realizada[3]
+
+        print("\nVenta", numero_venta)
+        print("Producto:", nombre_producto)
+        print("Cantidad:", cantidad_venta)
+
+        print(
+            "Precio unitario: $"
+            + format(precio_unitario, ",.2f")
+        )
+
+        print(
+            "Total: $"
+            + format(total_venta, ",.2f")
+        )
+
+        # Aumentamos el contador.
+        numero_venta += 1
+
+
+# ============================================================
+# FUNCIÓN QUE REGRESA EL TOTAL VENDIDO
+# RF8
+# ============================================================
+
+def calcular_total_dia():
+
+    # Iniciamos el acumulador.
+    total_acumulado = 0.0
+
+    # Recorremos las ventas.
+    for venta_realizada in ventas_dia:
+
+        # El total está en la posición 3
+        # de cada tupla.
+        total_acumulado += venta_realizada[3]
+
+    # Esta función sí regresa un valor.
+    return total_acumulado
+
+
+# ============================================================
+# INICIO DEL PROGRAMA
+# ============================================================
+
+# Antes de mostrar el menú intentamos cargar
+# el inventario anterior.
+cargar_inventario()
+
+
+# Variable que controla el ciclo principal.
+programa_activo = True
+
+
+# ============================================================
+# MENÚ PRINCIPAL
+# RF1
+# ============================================================
+
+# El menú seguirá apareciendo hasta elegir Salir.
+while programa_activo:
+
+    print("\n===================================")
+    print("   FERRETERÍA - INVENTARIO Y VENTAS")
+    print("===================================")
+
+    print("1. Agregar producto")
+    print("2. Consultar inventario")
+    print("3. Buscar producto")
+    print("4. Vender producto")
+    print("5. Ver productos con stock bajo")
+    print("6. Ver ventas del día")
+    print("7. Ver total vendido en el día")
+    print("8. Salir")
+
+    print("===================================")
+
+    # Protegemos la entrada del menú con try/except.
+    try:
+
+        opcion_menu = int(
+            input("Selecciona una opción: ")
+        )
+
+    except ValueError:
+
+        # Si escriben letras o símbolos, el programa
+        # no se detiene.
+        print("\nOpción inválida.")
+        print("Debes escribir un número del 1 al 8.")
+
+        # Regresamos al inicio del while.
+        continue
+
+
+    # ========================================================
+    # OPCIÓN 1
+    # ========================================================
+
+    if opcion_menu == 1:
+
+        agregar_producto()
+
+
+    # ========================================================
+    # OPCIÓN 2
+    # ========================================================
+
+    elif opcion_menu == 2:
+
+        consultar_inventario()
+
+
+    # ========================================================
+    # OPCIÓN 3
+    # ========================================================
+
+    elif opcion_menu == 3:
+
+        buscar_producto()
+
+
+    # ========================================================
+    # OPCIÓN 4
+    # ========================================================
+
+    elif opcion_menu == 4:
+
+        vender_producto()
+
+
+    # ========================================================
+    # OPCIÓN 5
+    # ========================================================
+
+    elif opcion_menu == 5:
+
+        mostrar_stock_bajo()
+
+
+    # ========================================================
+    # OPCIÓN 6
+    # ========================================================
+
+    elif opcion_menu == 6:
+
+        mostrar_ventas_dia()
+
+
+    # ========================================================
+    # OPCIÓN 7
+    # ========================================================
+
+    elif opcion_menu == 7:
+
+        # Llamamos la función que regresa el total.
+        total_dia = calcular_total_dia()
+
+        print(
+            "\nTotal vendido en el día: $"
+            + format(total_dia, ",.2f")
+        )
+
+
+    # ========================================================
+    # OPCIÓN 8
+    # ========================================================
+
+    elif opcion_menu == 8:
+
+        # Antes de terminar se guarda automáticamente.
+        guardar_inventario()
+
+        print("\nGracias por utilizar el sistema.")
+        print("Programa finalizado.")
+
+        # Cambiamos la variable para salir del while.
+        programa_activo = False
+
+
+    # ========================================================
+    # OPCIÓN QUE NO EXISTE
+    # ========================================================
+
+    else:
+
+        # Cualquier número fuera de 1 a 8
+        # vuelve a mostrar el menú.
+        print("\nLa opción no existe.")
+        print("Selecciona un número del 1 al 8.")
